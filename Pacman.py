@@ -1006,10 +1006,10 @@ class GameInstance:
         return results
     
     def get_surroundings(self):
-        up    = canMove(game.pacman.row, game.pacman.row - 1)
-        right = canMove(game.pacman.col, game.pacman.col + 1)
-        down  = canMove(game.pacman.row, game.pacman.row + 1)
-        left  = canMove(game.pacman.col, game.pacman.col - 1)
+        up    = canMove(int(game.pacman.row) - 1, int(game.pacman.col))
+        right = canMove(int(game.pacman.row), int(game.pacman.col) + 1)
+        down  = canMove(int(game.pacman.row) + 1, int(game.pacman.col))
+        left  = canMove(int(game.pacman.row), int(game.pacman.col) - 1)
         return up, right, down, left
     
     def get_score(self):
