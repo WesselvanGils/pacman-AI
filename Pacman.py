@@ -77,8 +77,6 @@ PLAYING_KEYS = {
 # TODO: Create a play function that returns a direction
 # TODO: Keep track of the game iteration
 
-reward = 0
-
 class Game:
     def __init__(self, level, score):
         self.paused = True
@@ -123,14 +121,27 @@ class Game:
         self.lockedIn = True
         self.extraLifeGiven = False
         self.musicPlaying = 0
+        self.reward = 0
+        self.died = False
 
     # Driver method: The games primary update method
-    def update(self):
+    def update(self, action):
         # pygame.image.unload()
-        print(self.ghostStates)
-        if self.gameOver:
-            self.gameOverFunc()
-            return
+        # print(self.ghostStates)
+        global running
+        self.move(action)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                self.recordHighScore()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    running = False
+                    self.recordHighScore()
+                else:
+                    self.move(event.key)
+
         if self.paused or not self.started:
             self.drawTilesAround(21, 10)
             self.drawTilesAround(21, 11)
@@ -139,7 +150,7 @@ class Game:
             self.drawTilesAround(21, 14)
             self.drawReady()
             pygame.display.update()
-            return
+            return self.reward, self.died, self.score
 
         self.levelTimer += 1
         self.ghostUpdateCount += 1
@@ -197,6 +208,7 @@ class Game:
                     self.playMusic("munch_1.wav")
                     gameBoard[int(self.pacman.row)][int(self.pacman.col)] = 1
                     self.score += 10
+                    self.reward = 1
                     self.collected += 1
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
@@ -207,6 +219,7 @@ class Game:
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
                     self.score += 50
+                    self.reward = 1
                     self.ghostScore = 200
                     for ghost in self.ghosts:
                         ghost.attackedCount = 0
@@ -216,7 +229,6 @@ class Game:
         self.checkSurroundings()
         self.highScore = max(self.score, self.highScore)
 
-        global running
         if self.collected == self.total:
             print("New Level")
             self.forcePlayMusic("intermission.wav")
@@ -225,8 +237,11 @@ class Game:
 
         if self.level - 1 == 8: #(self.levels[0][0] + self.levels[0][1]) // 50:
             print("You win", self.level, len(self.levels))
+            reward += 1000
             running = False
         self.softRender()
+
+        return self.reward, self.died, self.score
 
     # Render method
     def render(self):
@@ -454,8 +469,9 @@ class Game:
                 self.forcePlayMusic("pacman_death.wav")
                 self.lives -= 1
                 self.score = 0
-                game.newLevel()
-                
+                self.reward = -10
+                self.died = True
+                self.newLevel()
             elif self.touchingPacman(ghost.row, ghost.col) and ghost.isAttacked() and not ghost.isDead():
                 ghost.setDead(True)
                 ghost.setTarget()
@@ -530,6 +546,19 @@ class Game:
         file = open(DataPath + "HighScore.txt", "w+")
         file.write(str(self.highScore))
         file.close()
+
+    def move(self, eventKey):
+        self.paused = False
+        self.started = True
+        if eventKey in PLAYING_KEYS["up"]:
+                self.pacman.newDir = 0
+        elif eventKey in PLAYING_KEYS["right"]:
+                self.pacman.newDir = 1
+        elif eventKey in PLAYING_KEYS["down"]:
+                self.pacman.newDir = 2
+        elif eventKey in PLAYING_KEYS["left"]:
+                self.pacman.newDir = 3
+
 
 class Pacman:
     def __init__(self, row, col):
@@ -850,6 +879,7 @@ def canMove(row, col):
 # Reset after death
 def reset():
     global game
+    game.died = False
     game.ghosts = [Ghost(14.0, 13.5, "red", 0), Ghost(17.0, 11.5, "blue", 1), Ghost(17.0, 13.5, "pink", 2), Ghost(17.0, 15.5, "orange", 3)]
     for ghost in game.ghosts:
         ghost.setTarget()
@@ -959,30 +989,26 @@ def pause(time):
     while not cur == time:
         cur += 1
 
-def move(eventKey):
-    game.paused = False
-    game.started = True
-    if eventKey in PLAYING_KEYS["up"]:
-            game.pacman.newDir = 0
-    elif eventKey in PLAYING_KEYS["right"]:
-            game.pacman.newDir = 1
-    elif eventKey in PLAYING_KEYS["down"]:
-            game.pacman.newDir = 2
-    elif eventKey in PLAYING_KEYS["left"]:
-            game.pacman.newDir = 3
+class GameInstance:
 
-while running:
-    clock.tick(40)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-            game.recordHighScore()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_q:
-                running = False
-                game.recordHighScore()
-            else:
-                move(event.key)
-
-    if not onLaunchScreen:
-        game.update()
+    def update(self, action):
+        return game.update(action)
+    
+    def get_pacman_pos(self):
+        return game.pacman.row, game.pacman.col
+    
+    def get_ghosts_pos(self):
+        results = []
+        for ghost in game.ghosts:
+            results.append((ghost.row, ghost.col))
+        return results
+    
+    def get_surroundings(self):
+        up    = canMove(game.pacman.row, game.pacman.row - 1)
+        right = canMove(game.pacman.col, game.pacman.col + 1)
+        down  = canMove(game.pacman.row, game.pacman.row + 1)
+        left  = canMove(game.pacman.col, game.pacman.col - 1)
+        return up, right, down, left
+    
+    def get_score(self):
+        return game.score
