@@ -208,7 +208,7 @@ class Game:
                     self.playMusic("munch_1.wav")
                     gameBoard[int(self.pacman.row)][int(self.pacman.col)] = 1
                     self.score += 10
-                    self.reward = 1
+                    self.reward += 1
                     self.collected += 1
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
@@ -219,13 +219,15 @@ class Game:
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
                     self.score += 50
-                    self.reward = 1
+                    self.reward += 1
                     self.ghostScore = 200
                     for ghost in self.ghosts:
                         ghost.attackedCount = 0
                         ghost.setAttacked(True)
                         ghost.setTarget()
                         self.ghostsAttacked = True
+        self.died = False
+        scoreToSave = self.score
         self.checkSurroundings()
         self.highScore = max(self.score, self.highScore)
 
@@ -241,7 +243,7 @@ class Game:
             running = False
         self.softRender()
 
-        return self.reward, self.died, self.score
+        return self.reward, self.died, scoreToSave
 
     # Render method
     def render(self):
@@ -469,7 +471,7 @@ class Game:
                 self.forcePlayMusic("pacman_death.wav")
                 self.lives -= 1
                 self.score = 0
-                self.reward = -10
+                self.reward = -100
                 self.died = True
                 self.newLevel()
             elif self.touchingPacman(ghost.row, ghost.col) and ghost.isAttacked() and not ghost.isDead():
@@ -481,6 +483,7 @@ class Game:
                 self.score += self.ghostScore
                 self.points.append([ghost.row, ghost.col, self.ghostScore, 0])
                 self.ghostScore *= 2
+                self.reward += 10
                 self.forcePlayMusic("eat_ghost.wav")
                 pause(10000000)
         if self.touchingPacman(self.berryLocation[0], self.berryLocation[1]) and not self.berryState[2] and self.levelTimer in range(self.berryState[0], self.berryState[1]):
@@ -879,7 +882,6 @@ def canMove(row, col):
 # Reset after death
 def reset():
     global game
-    game.died = False
     game.ghosts = [Ghost(14.0, 13.5, "red", 0), Ghost(17.0, 11.5, "blue", 1), Ghost(17.0, 13.5, "pink", 2), Ghost(17.0, 15.5, "orange", 3)]
     for ghost in game.ghosts:
         ghost.setTarget()
