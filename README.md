@@ -18,10 +18,14 @@ python -m venv env
 3. Activate the virtual enviroment 
     * On Windows `.\env\Scripts\Activate`
     * On Linux `source env/bin/activate`
-<br><br>
+<br></br>
 4. Install the dependencies
 ```ps
 pip install -r requirements.txt
+```
+5. Run the agent
+```ps
+python agent.py
 ```
 
 ## Credit
