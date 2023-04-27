@@ -23,3 +23,9 @@ python -m venv env
 ```ps
 pip install -r requirements.txt
 ```
+
+## Credit
+
+[AI Tutorial](https://github.com/patrickloeber/snake-ai-pytorch)
+
+[Pacman Source Code](https://github.com/DevinLeamy/Pacman)
