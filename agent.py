@@ -5,6 +5,8 @@ import numpy as np
 
 from collections import deque
 from pacman import GameInstance, PLAYING_KEYS
+from model import Linear_QNet, QTrainer
+from helper import plot 
 
 MAX_MEMOMRY = 100_000
 BATCH_SIZE = 1000
@@ -14,10 +16,10 @@ class Agent:
     def __init__(self):
         self.n_games = 0
         self.epsilon = 0 # randomness
-        self.gamma = 0 # discount rate
+        self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMOMRY) # popleft()
-        self.model = None   # TODO: Add model
-        self.trainer = None # TODO: Add trainer
+        self.model = Linear_QNet(15, 256, 4)
+        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
     
     def get_state(self, game):
         pac_row, pac_col = game.get_pacman_pos()
@@ -73,7 +75,7 @@ class Agent:
                     final_move = pygame.K_LEFT
         else:
             state0 = torch.tensor(state, dtype=torch.float)
-            prediction = self.model.predict(state)
+            prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             match move:
                 case 0:
@@ -104,7 +106,6 @@ def train():
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        final_move = pygame.K_RIGHT
         reward, done, score = game.update(final_move)
         state_new = agent.get_state(game)
 
@@ -121,11 +122,15 @@ def train():
 
             if score > record:
                 record = score
-                # TODO: agent.model.save()
+                agent.model.save()
             
             print("Game", agent.n_games, "Score", score, "Record", record)
 
-            # TODO: plot
+            plot_scores.append(score)
+            total_score += score
+            mean_score = total_score / agent.n_games
+            plot_mean_scores.append(mean_score)
+            plot(plot_scores, plot_mean_scores)
 
 if __name__ == "__main__":
     train()
