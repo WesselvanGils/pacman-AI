@@ -77,6 +77,7 @@ class Agent:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
+            print(prediction)
             match move:
                 case 0:
                     final_move = pygame.K_UP
