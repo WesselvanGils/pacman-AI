@@ -72,11 +72,6 @@ PLAYING_KEYS = {
     "left":[pygame.K_a, pygame.K_LEFT]
 }
 
-# TODO: Create a reset function
-# TODO: Set rewards for the agent
-# TODO: Create a play function that returns a direction
-# TODO: Keep track of the game iteration
-
 class Game:
     def __init__(self, level, score):
         self.paused = True
@@ -129,6 +124,7 @@ class Game:
         # pygame.image.unload()
         # print(self.ghostStates)
         global running
+        self.reward = 0
         self.move(action)
 
         for event in pygame.event.get():
@@ -208,7 +204,7 @@ class Game:
                     self.playMusic("munch_1.wav")
                     gameBoard[int(self.pacman.row)][int(self.pacman.col)] = 1
                     self.score += 10
-                    self.reward = max(self.reward, 1)
+                    self.reward = max(self.reward, 100)
                     self.collected += 1
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
@@ -219,7 +215,7 @@ class Game:
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
                     self.score += 50
-                    self.reward = max(self.reward, 5)
+                    self.reward = max(self.reward, 500)
                     self.ghostScore = 200
                     for ghost in self.ghosts:
                         ghost.attackedCount = 0
@@ -239,7 +235,7 @@ class Game:
 
         if self.level - 1 == 8: #(self.levels[0][0] + self.levels[0][1]) // 50:
             print("You win", self.level, len(self.levels))
-            self.reward = max(self.reward, 1000)
+            self.reward = max(self.reward, 10000)
             running = False
         self.softRender()
 
@@ -471,7 +467,7 @@ class Game:
                 self.forcePlayMusic("pacman_death.wav")
                 self.lives -= 1
                 self.score = 0
-                self.reward = -100
+                self.reward = -10
                 self.died = True
                 self.newLevel()
             elif self.touchingPacman(ghost.row, ghost.col) and ghost.isAttacked() and not ghost.isDead():
@@ -483,7 +479,7 @@ class Game:
                 self.score += self.ghostScore
                 self.points.append([ghost.row, ghost.col, self.ghostScore, 0])
                 self.ghostScore *= 2
-                self.reward = max(self.reward, 10)
+                self.reward = max(self.reward, 1000)
                 self.forcePlayMusic("eat_ghost.wav")
                 pause(10000000)
         if self.touchingPacman(self.berryLocation[0], self.berryLocation[1]) and not self.berryState[2] and self.levelTimer in range(self.berryState[0], self.berryState[1]):
@@ -1006,10 +1002,10 @@ class GameInstance:
         return results
     
     def get_surroundings(self):
-        up    = gameBoard[int(game.pacman.row - 1)][int(game.pacman.col)]
-        right = int(gameBoard[game.pacman.row][game.pacman.col] + 1)
-        down  = int(gameBoard[game.pacman.row + 1][game.pacman.col])
-        left  = int(gameBoard[game.pacman.row][game.pacman.col - 1])
+        up    = float(gameBoard[int(game.pacman.row - 1)][int(game.pacman.col)])
+        right = float(gameBoard[int(game.pacman.row)][int(game.pacman.col + 1)])
+        down  = float(gameBoard[int(game.pacman.row + 1)][int(game.pacman.col)])
+        left  = float(gameBoard[int(game.pacman.row)][int(game.pacman.col - 1)])
         return up, right, down, left
     
     def get_score(self):

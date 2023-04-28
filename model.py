@@ -11,7 +11,7 @@ class Linear_QNet(nn.Module):
         self.linear2 = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        x = F.relu(self.linear1(x))
+        x = F.sigmoid(self.linear1(x))
         x = self.linear2(x)
         return x
     
@@ -45,8 +45,8 @@ class QTrainer:
             done = (done, )
         
         pred = self.model(state)
-        target = pred.clone()
 
+        target = pred.clone()
         for idx in range(len(done)):
             Q_new = reward[idx]
             if not done[idx]:

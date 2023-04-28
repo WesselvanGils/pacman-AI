@@ -7,6 +7,7 @@ from collections import deque
 from pacman import GameInstance, PLAYING_KEYS
 from model import Linear_QNet, QTrainer
 from helper import plot 
+from numpy import interp
 
 MAX_MEMOMRY = 100_000
 BATCH_SIZE = 1000
@@ -18,14 +19,16 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMOMRY) # popleft()
-        self.model = Linear_QNet(15, 256, 4)
+        self.model = Linear_QNet(10, 512, 4)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
     
     def get_state(self, game):
         pac_row, pac_col = game.get_pacman_pos()
         ghosts_pos = game.get_ghosts_pos()
         up, right, down, left = game.get_surroundings()
-        score = game.get_score()
+
+        pac_row = interp(pac_row, [0, 30], [0, 1])
+        pac_col = interp(pac_col, [0, 27], [0, 1])
 
         state = [
             pac_row,
@@ -34,12 +37,13 @@ class Agent:
             right,
             down,
             left,
-            score
         ]
 
         for pos in ghosts_pos:
-            state.append(pos[0])
-            state.append(pos[1])
+            row, col = pos
+            dist = np.sqrt((pac_row - row)**2 + (pac_col - col)**2)
+            dist = interp(dist, [0, 30], [0, 1])
+            state.append(dist)
 
         return np.array(state, dtype=int)
 
