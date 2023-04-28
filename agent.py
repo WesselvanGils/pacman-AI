@@ -30,6 +30,11 @@ class Agent:
         pac_row = interp(pac_row, [0, 30], [0, 1])
         pac_col = interp(pac_col, [0, 27], [0, 1])
 
+        up = interp(up, [0, 6], [0, 1])
+        right = interp(right, [0, 6], [0, 1])
+        down = interp(down, [0, 6], [0, 1])
+        left = interp(left, [0, 6], [0, 1])
+
         state = [
             pac_row,
             pac_col,

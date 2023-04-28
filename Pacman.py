@@ -204,7 +204,7 @@ class Game:
                     self.playMusic("munch_1.wav")
                     gameBoard[int(self.pacman.row)][int(self.pacman.col)] = 1
                     self.score += 10
-                    self.reward = max(self.reward, 100)
+                    self.reward = max(self.reward, 10)
                     self.collected += 1
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
@@ -215,7 +215,7 @@ class Game:
                     # Fill tile with black
                     pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
                     self.score += 50
-                    self.reward = max(self.reward, 500)
+                    self.reward = max(self.reward, 50)
                     self.ghostScore = 200
                     for ghost in self.ghosts:
                         ghost.attackedCount = 0
@@ -235,7 +235,7 @@ class Game:
 
         if self.level - 1 == 8: #(self.levels[0][0] + self.levels[0][1]) // 50:
             print("You win", self.level, len(self.levels))
-            self.reward = max(self.reward, 10000)
+            self.reward = max(self.reward, 1000)
             running = False
         self.softRender()
 
@@ -479,7 +479,7 @@ class Game:
                 self.score += self.ghostScore
                 self.points.append([ghost.row, ghost.col, self.ghostScore, 0])
                 self.ghostScore *= 2
-                self.reward = max(self.reward, 1000)
+                self.reward = max(self.reward, 100)
                 self.forcePlayMusic("eat_ghost.wav")
                 pause(10000000)
         if self.touchingPacman(self.berryLocation[0], self.berryLocation[1]) and not self.berryState[2] and self.levelTimer in range(self.berryState[0], self.berryState[1]):
@@ -1003,9 +1003,18 @@ class GameInstance:
     
     def get_surroundings(self):
         up    = float(gameBoard[int(game.pacman.row - 1)][int(game.pacman.col)])
-        right = float(gameBoard[int(game.pacman.row)][int(game.pacman.col + 1)])
         down  = float(gameBoard[int(game.pacman.row + 1)][int(game.pacman.col)])
-        left  = float(gameBoard[int(game.pacman.row)][int(game.pacman.col - 1)])
+
+        try:
+            right = float(gameBoard[int(game.pacman.row)][int(game.pacman.col + 1)])
+        except:
+            right = float(gameBoard[int(game.pacman.row)][0])
+            
+        try:
+            left  = float(gameBoard[int(game.pacman.row)][int(game.pacman.col - 1)])
+        except:
+            left  = float(gameBoard[int(game.pacman.row)][27])
+            
         return up, right, down, left
     
     def get_score(self):
