@@ -118,6 +118,7 @@ class Game:
 		self.extraLifeGiven = False
 		self.musicPlaying = 0
 		self.reward = 0
+		self.score = 0
 		self.died = False
 
 	# Driver method: The games primary update method
@@ -1024,6 +1025,8 @@ class GameInstance:
 		return np.array(state, dtype=float), rew, done
 
 	def reset(self):
+		game.score = 0
+		game.reward = 0
 		game.newLevel()
 
 		state = np.array(gameBoard)
