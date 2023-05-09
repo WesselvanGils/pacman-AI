@@ -6,6 +6,7 @@ import numpy as np
 from network import FeedForwardNN
 from torch.distributions import MultivariateNormal
 from torch.optim import Adam
+from plotter import plot
 
 class PPO:
 	def __init__(self, env):
@@ -29,8 +30,13 @@ class PPO:
 		self.cov_var = torch.full(size=(self.act_dim,), fill_value=0.5)
 		self.cov_mat = torch.diag(self.cov_var)
 
+		# Initialize the values to plot
+		self.scores = []
+		self.mean_scores = []
+
 	def learn(self, total_timesteps):
 		t_so_far = 0 # timesteps so far
+
 		while t_so_far < total_timesteps:
 			# ALG STEP 3
 			batch_obs, batch_acts, batch_log_probs, batch_rtgs, batch_lens = self.rollout()
@@ -146,6 +152,11 @@ class PPO:
 
 				if done:
 					break
+
+			# Plot results
+			self.scores.append(env.get_score())
+			self.mean_scores.append(np.mean(self.scores))
+			plot(self.scores, self.mean_scores)
 
 		# Collect episodic length and rewards
 		batch_lens.append(ep_t + 1) # plus 1 because timestep starts at 0

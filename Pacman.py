@@ -467,7 +467,7 @@ class Game:
 				self.started = False
 				self.forcePlayMusic("pacman_death.wav")
 				self.lives -= 1
-				self.score = 0
+				# self.score = 0
 				self.reward = -10
 				self.died = True
 				#self.newLevel()
@@ -1047,3 +1047,6 @@ class GameInstance:
 		for ghost in game.ghosts:
 			results.append((ghost.row, ghost.col))
 		return results
+
+	def get_score(self):
+		return game.score
