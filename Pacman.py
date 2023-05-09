@@ -206,7 +206,7 @@ class Game:
 					self.playMusic("munch_1.wav")
 					gameBoard[int(self.pacman.row)][int(self.pacman.col)] = 1
 					self.score += 10
-					self.reward = max(self.reward, 10)
+					self.reward = max(self.reward, 1)
 					self.collected += 1
 					# Fill tile with black
 					pygame.draw.rect(screen, (0, 0, 0), (self.pacman.col * square, self.pacman.row * square, square, square))
@@ -1026,7 +1026,6 @@ class GameInstance:
 
 	def reset(self):
 		game.score = 0
-		game.reward = 0
 		game.newLevel()
 
 		state = np.array(gameBoard)
