@@ -23,7 +23,7 @@ class PPO:
 		self.critic = FeedForwardNN(self.obs_dim, 1)
 
 		# Initialize optimizors
-		self.actor_optim = Adam(self.actor.parameters(), self.lr)
+		self.actor_optim = Adam(self.actor.parameters(), lr=self.lr)
 		self.critic_optim = Adam(self.critic.parameters(), lr=self.lr)
 
 		# Create the covariance matrix for get_actioin
@@ -91,7 +91,8 @@ class PPO:
 		dist = MultivariateNormal(mean, self.cov_mat)
 		log_probs = dist.log_prob(batch_acts)
 
-		# Return predicted values V and log probs log_probs
+		# Return the value vector V of each observation in the batch
+		# and log probabilities log_probs of each action in the batch
 		return V, log_probs
 
 	def _init_hyperparameters(self):
@@ -158,9 +159,9 @@ class PPO:
 			self.mean_scores.append(np.mean(self.scores))
 			plot(self.scores, self.mean_scores)
 
-		# Collect episodic length and rewards
-		batch_lens.append(ep_t + 1) # plus 1 because timestep starts at 0
-		batch_rews.append(ep_rews)
+			# Collect episodic length and rewards
+			batch_lens.append(ep_t + 1) # plus 1 because timestep starts at 0
+			batch_rews.append(ep_rews)
 
 		# Reshape data as tensors in the shape specified before returning
 		batch_obs = torch.tensor(batch_obs, dtype=torch.float)
