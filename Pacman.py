@@ -126,7 +126,7 @@ class Game:
 		# pygame.image.unload()
 		# print(self.ghostStates)
 		global running
-		self.reward = 0
+		self.reward = 1
 		self.move(action)
 
 		for event in pygame.event.get():
@@ -225,7 +225,6 @@ class Game:
 						ghost.setTarget()
 						self.ghostsAttacked = True
 		self.died = False
-		scoreToSave = self.score
 		self.checkSurroundings()
 		self.highScore = max(self.score, self.highScore)
 
@@ -1009,7 +1008,15 @@ class GameInstance:
 		return 4
 
 	def step(self, action):
+		lastPos = [0, 0]
+
 		rew, done = game.update(action)
+
+		# Punish if pacman doesn't move
+		if lastPos == self.get_pacman_pos():
+			rew = -1
+		else:
+			lastPos = self.get_pacman_pos()
 
 		state = np.array(gameBoard)
 		state.flatten()
