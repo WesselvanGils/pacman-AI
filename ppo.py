@@ -220,6 +220,6 @@ class PPO:
 from pacman import GameInstance
 env = GameInstance()
 model = PPO(env)
-model.learn(1000)
+model.learn(100_000)
 model.actor.save("actor.pth")
 model.critic.save("critic.pth")
