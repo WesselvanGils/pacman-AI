@@ -22,6 +22,11 @@ class PPO:
 		self.actor = FeedForwardNN(self.obs_dim, self.act_dim)
 		self.critic = FeedForwardNN(self.obs_dim, 1)
 
+		# Load actor and critic if specified
+		if self.load_model:
+			self.actor.load_state_dict(torch.load("./models/actor.pth"))
+			self.critic.load_state_dict(torch.load("./models/critic.pth"))
+
 		# Initialize optimizors
 		self.actor_optim = Adam(self.actor.parameters(), lr=self.lr)
 		self.critic_optim = Adam(self.critic.parameters(), lr=self.lr)
@@ -103,6 +108,7 @@ class PPO:
 		self.n_updates_per_iteration = 5
 		self.clip = 0.2
 		self.lr = 0.005
+		self.load_model = True
 
 	def rollout(self):
 		# Batch data
@@ -214,4 +220,6 @@ class PPO:
 from pacman import GameInstance
 env = GameInstance()
 model = PPO(env)
-model.learn(10_000)
+model.learn(1000)
+model.actor.save("actor.pth")
+model.critic.save("critic.pth")

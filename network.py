@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn.functional as F
 import numpy as np
@@ -21,3 +22,11 @@ class FeedForwardNN(nn.Module):
 		output = F.sigmoid(self.layer3(activation2))
 
 		return output
+
+	def save(self, file_name="model.pth"):
+		model_folder_path = "./models"
+		if not os.path.exists(model_folder_path):
+			os.makedirs(model_folder_path)
+
+		file_name = os.path.join(model_folder_path, file_name)
+		torch.save(self.state_dict(), file_name)
