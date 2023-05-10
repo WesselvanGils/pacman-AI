@@ -155,9 +155,9 @@ class PPO:
 					break
 
 			# Plot results
-			self.scores.append(env.get_score())
-			self.mean_scores.append(np.mean(self.scores))
-			plot(self.scores, self.mean_scores)
+			# self.scores.append(env.get_score())
+			# self.mean_scores.append(np.mean(self.scores))
+			plot(env.get_score())
 
 			# Collect episodic length and rewards
 			batch_lens.append(ep_t + 1) # plus 1 because timestep starts at 0

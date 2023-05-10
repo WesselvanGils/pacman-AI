@@ -129,16 +129,16 @@ class Game:
 		self.reward = 1
 		self.move(action)
 
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				running = False
-				self.recordHighScore()
-			elif event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_q:
-					running = False
-					self.recordHighScore()
-				else:
-					self.move(event.key)
+		# for event in pygame.event.get():
+		# 	if event.type == pygame.QUIT:
+		# 		running = False
+		# 		self.recordHighScore()
+		# 	elif event.type == pygame.KEYDOWN:
+		# 		if event.key == pygame.K_q:
+		# 			running = False
+		# 			self.recordHighScore()
+		# 		else:
+		# 			self.move(event.key)
 
 		if self.paused or not self.started:
 			self.drawTilesAround(21, 10)
