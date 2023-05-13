@@ -1013,10 +1013,21 @@ class GameInstance:
 			self.lastPos = self.get_pacman_pos()
 
 		# * Punish the model if it doesn't eat a pellet
-		if rew == 10 and game.levelTimer - self.lastMunch < 50:
+		# * Increase the reward for each consecutive pellet eaten
+		if game.levelTimer - self.lastMunch > 50:
 			rew = -1
 		if rew == 10:
+			rew += game.score / 100
 			self.lastMunch = game.levelTimer
+
+		# * Change the reward depending on distance from pacman to the ghosts
+		for ghost in game.ghosts:
+			if ghost.attacked:
+				continue
+			elif self.calc_distance(self.get_pacman_pos(), [ghost.row, ghost.col]) < 4:
+				rew = -1
+			elif self.calc_distance(self.get_pacman_pos(), [ghost.row, ghost.col]) < 6:
+				rew = 0
 
 		state = self.get_state()
 		return np.array(state, dtype=float), rew, done
@@ -1030,23 +1041,32 @@ class GameInstance:
 		return np.array(state, dtype=float)
 
 	def get_state(self):
-		board = np.array(copy.deepcopy(gameBoard))
-		board = np.hstack(board)
 
+		# * Get information about the game
 		pacrow, paccol = self.get_pacman_pos()
 		ghost = self.get_ghosts_pos()
 		score = game.score
 
+		# * Convert the information to a numpy array
 		state = []
 		state.append(pacrow)
 		state.append(paccol)
 		state.append(score)
 
 		state = state + ghost
-
 		state = np.array(state)
-		state = np.append(board, state)
 
+		# * Get a 5 x 5 area around pacman
+		board = np.array(copy.deepcopy(gameBoard))
+
+		# * Make sure we don't go out of bounds of the board
+		pacrow = pacrow if pacrow > 2 else 2
+		paccol = paccol if paccol > 2 else 2
+		board = board[int(pacrow) - 2: int(pacrow) + 3, int(paccol) - 2: int(paccol) + 3]
+		board = np.hstack(board)
+
+		# * Append the board to the state and return
+		state = np.append(board, state)
 		return state
 
 	def get_pacman_pos(self):
@@ -1061,3 +1081,8 @@ class GameInstance:
 
 	def get_score(self):
 		return game.score
+
+	def calc_distance(self, a, b):
+		dR = a[0] - b[0]
+		dC = a[1] - b[1]
+		return math.sqrt((dR * dR) + (dC * dC))

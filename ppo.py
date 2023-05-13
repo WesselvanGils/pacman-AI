@@ -105,8 +105,8 @@ class PPO:
 
 	def _init_hyperparameters(self):
 		# Default values for hyperparameters, will need to change later.
-		self.timesteps_per_batch = 128000 * 4        # timesteps per batch
-		self.max_timesteps_per_episode = 128000      # timesteps per episode
+		self.timesteps_per_batch = 10_000       # timesteps per batch
+		# self.max_timesteps_per_episode = 128000      # timesteps per episode (not in use as an episode lats until game over)
 		self.gamma = 0.95
 		self.n_updates_per_iteration = 5
 		self.clip = 0.2
@@ -139,6 +139,7 @@ class PPO:
 			while(not done):
 				# Increment timesteps ran this batch so far
 				ep_t += 1
+				t += 1
 
 				# Collect observation
 				batch_obs.append(obs)
