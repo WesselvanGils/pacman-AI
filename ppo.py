@@ -19,8 +19,11 @@ class PPO:
 		self.act_dim = env.actions()
 
 		# Initialize actor and critic networks
-		self.actor = FeedForwardNN(self.obs_dim, self.act_dim)
-		self.critic = FeedForwardNN(self.obs_dim, 1)
+		self.actor = FeedForwardNN(self.obs_dim, self.hidden_dim, self.hidden_count, self.act_dim)
+		self.critic = FeedForwardNN(self.obs_dim, self.hidden_dim, self.hidden_count, 1)
+
+		self.actor.to("cuda" if torch.cuda.is_available() else "cpu")
+		self.critic.to("cuda" if torch.cuda.is_available() else "cpu")
 
 		# Load actor and critic if specified
 		if self.load_model:
@@ -102,13 +105,15 @@ class PPO:
 
 	def _init_hyperparameters(self):
 		# Default values for hyperparameters, will need to change later.
-		self.timesteps_per_batch = 4800            # timesteps per batch
-		self.max_timesteps_per_episode = 1600      # timesteps per episode
+		self.timesteps_per_batch = 128000 * 4        # timesteps per batch
+		self.max_timesteps_per_episode = 128000      # timesteps per episode
 		self.gamma = 0.95
 		self.n_updates_per_iteration = 5
 		self.clip = 0.2
 		self.lr = 0.005
-		self.load_model = True
+		self.hidden_dim = 500
+		self.hidden_count = 100
+		self.load_model = False
 
 	def rollout(self):
 		# Batch data
@@ -129,9 +134,11 @@ class PPO:
 			obs = self.env.reset()
 			done = False
 
-			for ep_t in range(self.max_timesteps_per_episode):
+			ep_t = 0
+
+			while(not done):
 				# Increment timesteps ran this batch so far
-				t += 1
+				ep_t += 1
 
 				# Collect observation
 				batch_obs.append(obs)
@@ -156,9 +163,6 @@ class PPO:
 				ep_rews.append(rew)
 				batch_acts.append(action)
 				batch_log_probs.append(log_prob)
-
-				if done:
-					break
 
 			# Plot results
 			# self.scores.append(env.get_score())

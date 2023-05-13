@@ -468,7 +468,7 @@ class Game:
 				self.forcePlayMusic("pacman_death.wav")
 				self.lives -= 1
 				# self.score = 0
-				self.reward = -10
+				self.reward = -100
 				self.died = True
 				#self.newLevel()
 			elif self.touchingPacman(ghost.row, ghost.col) and ghost.isAttacked() and not ghost.isDead():
@@ -990,63 +990,64 @@ def pause(time):
 
 class GameInstance:
 
+	def __init__(self):
+		self.lastPos = [0, 0]
+		self.lastMunch = 0
+
 	def observations(self):
-		state = np.array(gameBoard)
-		state.flatten()
-
-		pac = self.get_pacman_pos()
-		ghost = self.get_ghosts_pos()
-		score = game.score
-
-		state = np.append(state, pac)
-		state = np.append(state, ghost)
-		state = np.append(state, score)
-
+		state = self.get_state()
+		print(f"There are: {state.size} observations")
 		return state.size
 
 	def actions(self):
 		return 4
 
 	def step(self, action):
-		lastPos = [0, 0]
-
 		rew, done = game.update(action)
 
-		# Punish if pacman doesn't move
-		if lastPos == self.get_pacman_pos():
+		# * Do some meta reward configuration that can't happen in the game class
+		# * Punish the model if pacman doesn't move
+		if self.lastPos == self.get_pacman_pos():
 			rew = -1
 		else:
-			lastPos = self.get_pacman_pos()
+			self.lastPos = self.get_pacman_pos()
 
-		state = np.array(gameBoard)
-		state.flatten()
+		# * Punish the model if it doesn't eat a pellet
+		if rew == 10 and game.levelTimer - self.lastMunch < 50:
+			rew = -1
+		if rew == 10:
+			self.lastMunch = game.levelTimer
 
-		pac = self.get_pacman_pos()
-		ghost = self.get_ghosts_pos()
-		score = game.score
-
-		state = np.append(state, pac)
-		state = np.append(state, ghost)
-		state = np.append(state, score)
-
+		state = self.get_state()
 		return np.array(state, dtype=float), rew, done
 
 	def reset(self):
 		game.score = 0
 		game.newLevel()
 
-		state = np.array(gameBoard)
-		state.flatten()
+		state = self.get_state()
 
-		pac = self.get_pacman_pos()
+		return np.array(state, dtype=float)
+
+	def get_state(self):
+		board = np.array(copy.deepcopy(gameBoard))
+		board = np.hstack(board)
+
+		pacrow, paccol = self.get_pacman_pos()
 		ghost = self.get_ghosts_pos()
 		score = game.score
 
-		state = np.append(state, pac)
-		state = np.append(state, ghost)
-		state = np.append(state, score)
+		state = []
+		state.append(pacrow)
+		state.append(paccol)
+		state.append(score)
 
-		return np.array(state, dtype=float)
+		state = state + ghost
+
+		state = np.array(state)
+		state = np.append(board, state)
+
+		return state
 
 	def get_pacman_pos(self):
 		return game.pacman.row, game.pacman.col
@@ -1054,7 +1055,8 @@ class GameInstance:
 	def get_ghosts_pos(self):
 		results = []
 		for ghost in game.ghosts:
-			results.append((ghost.row, ghost.col))
+			results.append(ghost.row)
+			results.append(ghost.col)
 		return results
 
 	def get_score(self):

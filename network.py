@@ -6,21 +6,25 @@ import numpy as np
 from torch import nn
 
 class FeedForwardNN(nn.Module):
-	def __init__(self, in_dim, out_dim):
+	def __init__(self, in_dim, hidden_dim, hidden_count, out_dim):
 		super(FeedForwardNN, self).__init__()
-		self.layer1 = nn.Linear(in_dim, 64)
-		self.layer2 = nn.Linear(64, 64)
-		self.layer3 = nn.Linear(64, out_dim)
+		self.linear_relu_stack = nn.Sequential()
+
+		self.linear_relu_stack.add_module(f"linear{0}", nn.Linear(in_dim, hidden_dim))
+		self.linear_relu_stack.add_module(f"relu{0}", nn.ReLU())
+
+		for i in range(1, hidden_count):
+			self.linear_relu_stack.add_module(f"ff{i}", nn.Linear(hidden_dim, hidden_dim))
+			self.linear_relu_stack.add_module(f"relu{i}", nn.ReLU())
+
+		self.linear_relu_stack.add_module(f"linear{hidden_count}", nn.Linear(hidden_dim, out_dim))
 
 	def forward(self, obs):
 		# Convert observation to tensor if it's a numpy array
 		if isinstance(obs, np.ndarray):
 			obs = torch.tensor(obs, dtype=torch.float)
 
-		activation1 = F.relu(self.layer1(obs))
-		activation2 = F.relu(self.layer2(activation1))
-		output = F.sigmoid(self.layer3(activation2))
-
+		output = self.linear_relu_stack(obs)
 		return output
 
 	def save(self, file_name="model.pth"):
