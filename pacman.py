@@ -1017,7 +1017,6 @@ class GameInstance:
 		if game.levelTimer - self.lastMunch > 50:
 			rew = -1
 		if rew == 10:
-			rew += game.score / 100
 			self.lastMunch = game.levelTimer
 
 		# * Change the reward depending on distance from pacman to the ghosts
